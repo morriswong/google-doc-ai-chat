@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    /* --- CSS: GEMINI DARK THEME REPLICATION --- */
+    :root {
+      --bg-color: #131314;
+      --surface-color: #1E1F20;
+      --text-primary: #E3E3E3;
+      --text-secondary: #C4C7C5;
+      --accent-blue: #A8C7FA;
+      --input-bg: #282A2C;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      font-family: 'Google Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* --- HEADER (New) --- */
+    .header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px 15px 0 15px;
+    }
+
+    .settings-icon {
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 20px;
+      transition: color 0.2s;
+    }
+    .settings-icon:hover { color: var(--text-primary); }
+
+    /* --- WELCOME SCREEN --- */
+    #welcome-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .gradient-text {
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      background: linear-gradient(74deg, #4285F4 0%, #9B72CB 9%, #D96570 20%, #D96570 24%, #9B72CB 35%, #4285F4 44%, #9B72CB 50%, #D96570 56%, #131314 75%, #131314 100%);
+      background-size: 400% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradient 10s ease infinite;
+    }
+
+    .greeting-sub {
+      font-size: 32px;
+      color: #444746;
+      font-weight: 500;
+      margin-top: -15px;
+      margin-bottom: 30px;
+    }
+
+    /* Suggestion Cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .card {
+      background-color: var(--surface-color);
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .card:hover { background-color: #2D2E30; }
+
+    /* --- CHAT INTERFACE --- */
+    #chat-container {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 15px;
+      gap: 15px;
+    }
+
+    .message-wrapper {
+      display: flex;
+      flex-direction: column;
+      max-width: 90%;
+    }
+    
+    .message-wrapper.user { align-self: flex-end; align-items: flex-end; }
+    .message-wrapper.bot { align-self: flex-start; align-items: flex-start; }
+
+    .message {
+      padding: 10px 15px;
+      border-radius: 18px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .user-msg {
+      background-color: #282A2C;
+      color: var(--text-primary);
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot-msg {
+      background-color: transparent;
+      color: var(--text-primary);
+      padding-left: 0;
+    }
+
+    /* --- INSERT BUTTON STYLES --- */
+    .action-bar {
+      margin-top: 5px;
+      display: flex;
+      gap: 10px;
+      opacity: 0.8;
+    }
+
+    .insert-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      border: 1px solid #444746;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .insert-btn:hover {
+      background: #2D2E30;
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+    
+    .insert-btn span { font-size: 16px; }
+
+    .loading-dots {
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+
+    /* --- INPUT AREA --- */
+    .input-area {
+      padding: 15px;
+      background-color: var(--bg-color);
+    }
+
+    .input-wrapper {
+      background-color: var(--surface-color);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      padding: 8px 15px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    button.send-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+      opacity: 0.7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button.send-btn:hover { opacity: 1; }
+
+    /* --- SETTINGS MODAL (New) --- */
+    #settings-modal {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-content {
+      background: var(--surface-color);
+      padding: 20px;
+      border-radius: 16px;
+      width: 80%;
+      max-width: 300px;
+      border: 1px solid #444746;
+    }
+
+    .modal-title { font-weight: 500; font-size: 18px; margin-bottom: 15px; }
+
+    .api-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid #444746;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-sizing: border-box; /* Important for padding */
+      margin-bottom: 15px;
+      font-family: monospace;
+    }
+    
+    .api-input:focus { border-color: var(--accent-blue); outline: none; }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn-cancel { background: transparent; color: var(--text-secondary); }
+    .btn-cancel:hover { background: rgba(255,255,255,0.05); }
+
+    .btn-save { background: var(--accent-blue); color: #000; }
+    .btn-save:hover { opacity: 0.9; }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-color); }
+    ::-webkit-scrollbar-thumb { background: #444746; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- NEW HEADER -->
+  <div class="header">
+    <span class="material-symbols-outlined settings-icon" onclick="toggleSettings()" title="Settings">settings</span>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-title">API Settings</div>
+      <div style="font-size:12px; color: #C4C7C5; margin-bottom: 10px;">Enter your OpenRouter API Key:</div>
+      <input type="password" id="api-key-input" class="api-input" placeholder="sk-or-..." />
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="toggleSettings()">Cancel</button>
+        <button class="btn btn-save" onclick="saveKey()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="welcome-container">
+    <div class="gradient-text">Hello, User.</div>
+    <div class="greeting-sub">How can I help you today?</div>
+    
+    <div class="card-grid">
+      <div class="card" onclick="fillInput('Help me write a professional email.')">Help me write a professional email</div>
+      <div class="card" onclick="fillInput('Summarize the selected text.')">Summarize text</div>
+      <div class="card" onclick="fillInput('Give me 5 creative titles for this doc.')">Creative titles</div>
+    </div>
+  </div>
+
+  <div id="chat-container"></div>
+
+  <div class="input-area">
+    <div class="input-wrapper">
+      <input type="text" id="user-input" placeholder="Enter a prompt here" autocomplete="off">
+      <button class="send-btn" onclick="sendMessage()">
+        <span class="material-symbols-outlined">send</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let chatHistory = [
+      { role: "system", content: "You are a helpful AI assistant inside Google Docs. Be concise and use Markdown for formatting." }
+    ];
+
+    const inputField = document.getElementById('user-input');
+    const welcomeContainer = document.getElementById('welcome-container');
+    const chatContainer = document.getElementById('chat-container');
+    const settingsModal = document.getElementById('settings-modal');
+    const apiKeyInput = document.getElementById('api-key-input');
+
+    // --- INITIAL CHECK ---
+    // Check if user has an API Key when sidebar opens
+    window.onload = function() {
+      google.script.run
+        .withSuccessHandler(function(hasKey) {
+          if (!hasKey) {
+            // Force open settings if no key exists
+            toggleSettings();
+          }
+        })
+        .hasApiKey();
+    };
+
+    inputField.addEventListener("keypress", function(event) {
+      if (event.key === "Enter") sendMessage();
+    });
+
+    function fillInput(text) {
+      inputField.value = text;
+      inputField.focus();
+    }
+
+    // --- SETTINGS LOGIC ---
+    function toggleSettings() {
+      const isHidden = settingsModal.style.display === 'none' || settingsModal.style.display === '';
+      settingsModal.style.display = isHidden ? 'flex' : 'none';
+      if (isHidden) apiKeyInput.focus();
+    }
+
+    function saveKey() {
+      const key = apiKeyInput.value.trim();
+      if (!key) return;
+
+      const saveBtn = document.querySelector('.btn-save');
+      const originalText = saveBtn.innerText;
+      saveBtn.innerText = "Saving...";
+
+      google.script.run
+        .withSuccessHandler(function() {
+          saveBtn.innerText = "Saved!";
+          setTimeout(() => {
+            saveBtn.innerText = originalText;
+            toggleSettings();
+          }, 800);
+        })
+        .saveApiKey(key);
+    }
+
+    // --- CHAT LOGIC ---
+    function sendMessage() {
+      const text = inputField.value.trim();
+      if (!text) return;
+
+      if (welcomeContainer.style.display !== 'none') {
+        welcomeContainer.style.display = 'none';
+        chatContainer.style.display = 'flex';
+      }
+
+      addMessageToUi(text, 'user');
+      inputField.value = '';
+
+      const loadingId = 'loading-' + Date.now();
+      const loadingDiv = document.createElement('div');
+      loadingDiv.id = loadingId;
+      loadingDiv.className = 'loading-dots';
+      loadingDiv.textContent = 'Gemini is thinking...';
+      chatContainer.appendChild(loadingDiv);
+      scrollToBottom();
+
+      chatHistory.push({ role: "user", content: text });
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          document.getElementById(loadingId).remove();
+          addMessageToUi(response, 'bot');
+          chatHistory.push({ role: "assistant", content: response });
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById(loadingId).remove();
+          addMessageToUi("Error: " + err, 'bot');
+        })
+        .callOpenRouter(chatHistory);
+    }
+
+    function addMessageToUi(text, sender) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `message-wrapper ${sender}`;
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
+      
+      // Basic formatting
+      let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+      formatted = formatted.replace(/\n/g, '<br>');
+      msgDiv.innerHTML = formatted;
+      
+      wrapper.appendChild(msgDiv);
+
+      // ADD INSERT BUTTON FOR BOT MESSAGES
+      if (sender === 'bot') {
+        const actionBar = document.createElement('div');
+        actionBar.className = 'action-bar';
+
+        const insertBtn = document.createElement('button');
+        insertBtn.className = 'insert-btn';
+        insertBtn.innerHTML = '<span class="material-symbols-outlined">input</span> Insert';
+        
+        insertBtn.onclick = function() {
+          insertBtn.innerHTML = '<span class="material-symbols-outlined">check</span> Inserted';
+          setTimeout(() => {
+             insertBtn.innerHTML = '<span class="material-symbols-outlined">input</span> Insert';
+          }, 2000);
+          google.script.run.insertAtCursor(text); 
+        };
+
+        actionBar.appendChild(insertBtn);
+        wrapper.appendChild(actionBar);
+      }
+
+      chatContainer.appendChild(wrapper);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  </script>
+</body>
+</html>
