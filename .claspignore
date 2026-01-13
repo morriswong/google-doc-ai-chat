@@ -1,0 +1,5 @@
+# Ignore everything except Apps Script files
+**/**
+!code.js
+!Sidebar.html
+!appsscript.json
