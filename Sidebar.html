@@ -12,6 +12,7 @@
       --text-primary: #E3E3E3;
       --text-secondary: #C4C7C5;
       --accent-blue: #A8C7FA;
+      --accent-green: #81C995;
       --input-bg: #282A2C;
     }
 
@@ -28,12 +29,37 @@
       position: relative;
     }
 
-    /* --- HEADER (New) --- */
+    /* --- HEADER --- */
     .header {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       padding: 10px 15px 0 15px;
     }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .container-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface-color);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .container-badge .material-symbols-outlined {
+      font-size: 14px;
+    }
+
+    .container-badge.docs { border-left: 2px solid #4285F4; }
+    .container-badge.sheets { border-left: 2px solid #34A853; }
 
     .settings-icon {
       color: var(--text-secondary);
@@ -42,6 +68,62 @@
       transition: color 0.2s;
     }
     .settings-icon:hover { color: var(--text-primary); }
+
+    /* --- CONTEXT BAR --- */
+    .context-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 15px;
+      background: var(--surface-color);
+      margin: 10px 15px 0 15px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .context-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: 1px solid #444746;
+      border-radius: 16px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Google Sans', sans-serif;
+    }
+
+    .context-btn:hover {
+      background: #2D2E30;
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+
+    .context-btn.active {
+      background: rgba(129, 201, 149, 0.15);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .context-btn .material-symbols-outlined {
+      font-size: 14px;
+    }
+
+    .context-info {
+      flex: 1;
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .context-info.loaded {
+      color: var(--accent-green);
+    }
 
     /* --- WELCOME SCREEN --- */
     #welcome-container {
@@ -109,7 +191,7 @@
       flex-direction: column;
       max-width: 90%;
     }
-    
+
     .message-wrapper.user { align-self: flex-end; align-items: flex-end; }
     .message-wrapper.bot { align-self: flex-start; align-items: flex-start; }
 
@@ -159,7 +241,7 @@
       color: var(--text-primary);
       border-color: var(--text-secondary);
     }
-    
+
     .insert-btn span { font-size: 16px; }
 
     .loading-dots {
@@ -203,10 +285,10 @@
       align-items: center;
       justify-content: center;
     }
-    
+
     button.send-btn:hover { opacity: 1; }
 
-    /* --- SETTINGS MODAL (New) --- */
+    /* --- SETTINGS MODAL --- */
     #settings-modal {
       display: none;
       position: absolute;
@@ -236,11 +318,11 @@
       color: white;
       padding: 10px;
       border-radius: 8px;
-      box-sizing: border-box; /* Important for padding */
+      box-sizing: border-box;
       margin-bottom: 15px;
       font-family: monospace;
     }
-    
+
     .api-input:focus { border-color: var(--accent-blue); outline: none; }
 
     .modal-actions {
@@ -267,13 +349,35 @@
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-color); }
     ::-webkit-scrollbar-thumb { background: #444746; border-radius: 4px; }
+
+    /* Context loading animation */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .loading { animation: pulse 1.5s infinite; }
   </style>
 </head>
 <body>
 
-  <!-- NEW HEADER -->
+  <!-- HEADER -->
   <div class="header">
+    <div class="header-left">
+      <div id="container-badge" class="container-badge">
+        <span class="material-symbols-outlined">description</span>
+        <span id="container-type">Loading...</span>
+      </div>
+    </div>
     <span class="material-symbols-outlined settings-icon" onclick="toggleSettings()" title="Settings">settings</span>
+  </div>
+
+  <!-- CONTEXT BAR -->
+  <div class="context-bar">
+    <button id="context-btn" class="context-btn" onclick="loadContext()" title="Load document content as context">
+      <span class="material-symbols-outlined">auto_awesome</span>
+      <span id="context-btn-text">Read Content</span>
+    </button>
+    <span id="context-info" class="context-info">Click to add document context</span>
   </div>
 
   <!-- SETTINGS MODAL -->
@@ -292,11 +396,11 @@
   <div id="welcome-container">
     <div class="gradient-text">Hello, User.</div>
     <div class="greeting-sub">How can I help you today?</div>
-    
-    <div class="card-grid">
+
+    <div class="card-grid" id="suggestion-cards">
       <div class="card" onclick="fillInput('Help me write a professional email.')">Help me write a professional email</div>
-      <div class="card" onclick="fillInput('Summarize the selected text.')">Summarize text</div>
-      <div class="card" onclick="fillInput('Give me 5 creative titles for this doc.')">Creative titles</div>
+      <div class="card" onclick="fillInput('Summarize this document.')">Summarize this document</div>
+      <div class="card" onclick="fillInput('Give me 5 creative titles for this.')">Creative titles</div>
     </div>
   </div>
 
@@ -312,29 +416,171 @@
   </div>
 
   <script>
-    let chatHistory = [
-      { role: "system", content: "You are a helpful AI assistant inside Google Docs. Be concise and use Markdown for formatting." }
-    ];
+    // State
+    let containerType = 'unknown';
+    let containerName = '';
+    let documentContent = null;
+    let contextLoaded = false;
 
+    let chatHistory = [];
+
+    // DOM Elements
     const inputField = document.getElementById('user-input');
     const welcomeContainer = document.getElementById('welcome-container');
     const chatContainer = document.getElementById('chat-container');
     const settingsModal = document.getElementById('settings-modal');
     const apiKeyInput = document.getElementById('api-key-input');
+    const containerBadge = document.getElementById('container-badge');
+    const containerTypeEl = document.getElementById('container-type');
+    const contextBtn = document.getElementById('context-btn');
+    const contextBtnText = document.getElementById('context-btn-text');
+    const contextInfo = document.getElementById('context-info');
+    const suggestionCards = document.getElementById('suggestion-cards');
 
-    // --- INITIAL CHECK ---
-    // Check if user has an API Key when sidebar opens
+    // --- INITIALIZATION ---
     window.onload = function() {
+      // Check for API key
       google.script.run
         .withSuccessHandler(function(hasKey) {
           if (!hasKey) {
-            // Force open settings if no key exists
             toggleSettings();
           }
         })
         .hasApiKey();
+
+      // Get container info
+      google.script.run
+        .withSuccessHandler(function(info) {
+          containerType = info.type;
+          containerName = info.name;
+          updateContainerUI();
+          initChatHistory();
+        })
+        .getContainerInfo();
     };
 
+    function updateContainerUI() {
+      // Update badge
+      containerBadge.classList.remove('docs', 'sheets');
+
+      if (containerType === 'docs') {
+        containerBadge.classList.add('docs');
+        containerTypeEl.textContent = 'Docs';
+        containerBadge.querySelector('.material-symbols-outlined').textContent = 'description';
+        updateSuggestionCards('docs');
+      } else if (containerType === 'sheets') {
+        containerBadge.classList.add('sheets');
+        containerTypeEl.textContent = 'Sheets';
+        containerBadge.querySelector('.material-symbols-outlined').textContent = 'table_chart';
+        updateSuggestionCards('sheets');
+      } else {
+        containerTypeEl.textContent = 'Unknown';
+      }
+    }
+
+    function updateSuggestionCards(type) {
+      if (type === 'sheets') {
+        suggestionCards.innerHTML = `
+          <div class="card" onclick="fillInput('Analyze this data and summarize key insights.')">Analyze this data</div>
+          <div class="card" onclick="fillInput('Create a formula to calculate the total.')">Help with formulas</div>
+          <div class="card" onclick="fillInput('Find patterns or trends in this spreadsheet.')">Find patterns</div>
+        `;
+      }
+      // Docs suggestions are already the default
+    }
+
+    function initChatHistory() {
+      const typeLabel = containerType === 'docs' ? 'Google Docs' :
+                        containerType === 'sheets' ? 'Google Sheets' : 'Google Workspace';
+
+      chatHistory = [
+        {
+          role: "system",
+          content: `You are a helpful AI assistant inside ${typeLabel}. Be concise and use Markdown for formatting. When the user provides document content as context, use it to give relevant and specific answers.`
+        }
+      ];
+    }
+
+    // --- CONTEXT LOADING ---
+    function loadContext() {
+      if (contextLoaded) {
+        // Toggle off - remove context
+        contextLoaded = false;
+        documentContent = null;
+        contextBtn.classList.remove('active');
+        contextBtnText.textContent = 'Read Content';
+        contextInfo.textContent = 'Click to add document context';
+        contextInfo.classList.remove('loaded');
+        initChatHistory(); // Reset chat history without context
+        return;
+      }
+
+      // Show loading state
+      contextBtn.classList.add('loading');
+      contextBtnText.textContent = 'Reading...';
+      contextInfo.textContent = 'Loading content...';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          contextBtn.classList.remove('loading');
+
+          if (result.content && result.content !== 'No content found') {
+            documentContent = result;
+            contextLoaded = true;
+            contextBtn.classList.add('active');
+            contextBtnText.textContent = 'Context On';
+
+            // Show info about loaded content
+            const charCount = result.charCount > 1000 ?
+              Math.round(result.charCount / 1000) + 'k chars' :
+              result.charCount + ' chars';
+            contextInfo.textContent = `${result.contentType} (${charCount})`;
+            contextInfo.classList.add('loaded');
+
+            // Update system prompt with context
+            updateChatHistoryWithContext(result);
+          } else {
+            contextBtnText.textContent = 'Read Content';
+            contextInfo.textContent = 'No content found';
+            setTimeout(() => {
+              contextInfo.textContent = 'Click to add document context';
+            }, 2000);
+          }
+        })
+        .withFailureHandler(function(err) {
+          contextBtn.classList.remove('loading');
+          contextBtnText.textContent = 'Read Content';
+          contextInfo.textContent = 'Error loading content';
+          console.error('Error loading context:', err);
+        })
+        .getContent(false, true); // Get full content, active sheet only for Sheets
+    }
+
+    function updateChatHistoryWithContext(contentResult) {
+      const typeLabel = containerType === 'docs' ? 'Google Docs' :
+                        containerType === 'sheets' ? 'Google Sheets' : 'Google Workspace';
+
+      const contextIntro = containerType === 'sheets' ?
+        'The user is working on a spreadsheet. Here is the data from the sheet (formatted as rows with columns separated by tabs):' :
+        'The user is working on a document. Here is the content:';
+
+      chatHistory = [
+        {
+          role: "system",
+          content: `You are a helpful AI assistant inside ${typeLabel}. Be concise and use Markdown for formatting.
+
+${contextIntro}
+
+---
+${contentResult.content}
+---
+
+Use this content to provide relevant, specific answers. Reference specific parts of the content when applicable. If the user asks about the document/sheet, base your answers on this content.`
+        }
+      ];
+    }
+
+    // --- EVENT LISTENERS ---
     inputField.addEventListener("keypress", function(event) {
       if (event.key === "Enter") sendMessage();
     });
@@ -412,12 +658,12 @@
 
       const msgDiv = document.createElement('div');
       msgDiv.className = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
-      
+
       // Basic formatting
       let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
       formatted = formatted.replace(/\n/g, '<br>');
       msgDiv.innerHTML = formatted;
-      
+
       wrapper.appendChild(msgDiv);
 
       // ADD INSERT BUTTON FOR BOT MESSAGES
@@ -428,13 +674,13 @@
         const insertBtn = document.createElement('button');
         insertBtn.className = 'insert-btn';
         insertBtn.innerHTML = '<span class="material-symbols-outlined">input</span> Insert';
-        
+
         insertBtn.onclick = function() {
           insertBtn.innerHTML = '<span class="material-symbols-outlined">check</span> Inserted';
           setTimeout(() => {
              insertBtn.innerHTML = '<span class="material-symbols-outlined">input</span> Insert';
           }, 2000);
-          google.script.run.insertAtCursor(text); 
+          google.script.run.insertAtCursor(text);
         };
 
         actionBar.appendChild(insertBtn);
