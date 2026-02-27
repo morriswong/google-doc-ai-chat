@@ -2,7 +2,7 @@ function importLinkedInJobAlerts() {
   var sheet = getOrCreateSheet();
   var processedUrls = getProcessedUrls(sheet);
 
-  var threads = GmailApp.search('label:Career from:jobalerts-noreply@linkedin.com', 0, 50);
+  var threads = GmailApp.search('label:Career from:jobalerts-noreply@linkedin.com newer_than:1d', 0, 50);
   var rows = [];
 
   threads.forEach(function(thread) {
