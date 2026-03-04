@@ -1,9 +1,11 @@
-name: Deploy to Google Apps Script
+name: Deploy job-alerts
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'job-alerts/**'
 
 jobs:
   deploy:
@@ -24,7 +26,7 @@ jobs:
         run: echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
 
       - name: Write clasp project settings
-        run: echo '{"scriptId":"${{ secrets.CLASP_SCRIPT_ID }}","rootDir":""}' > .clasp.json
+        run: echo '{"scriptId":"${{ secrets.JOB_ALERTS_SCRIPT_ID }}","rootDir":"job-alerts"}' > .clasp.json
 
       - name: Push to Apps Script
         run: clasp push --force
